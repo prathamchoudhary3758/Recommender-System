@@ -54,6 +54,7 @@ coverage.xml
 .idea/
 *.swp
 *.swo
+.github/
 
 # Project Data and Artifacts (ignore heavy raw data/model caches, keep models/datasets out of git)
 data/raw/
