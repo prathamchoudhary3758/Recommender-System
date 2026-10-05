@@ -1,0 +1,243 @@
+================================================================================
+           TWO-STAGE RECOMMENDER SYSTEM & A/B TESTING FRAMEWORK
+                     14-DAY STEP-BY-STEP IMPLEMENTATION PLAN
+================================================================================
+
+PROJECT OVERVIEW:
+-----------------
+Build a production-grade, two-stage recommender system combining candidate 
+retrieval (vector search using Faiss) and ranking (LightGBM/XGBoost), coupled with 
+an end-to-end A/B testing simulation framework covering Sample Ratio Mismatch (SRM), 
+CUPED variance reduction, and statistical power analysis.
+
+WORKFLOW RULES:
+----------------
+1. Work is executed strictly one day at a time without rushing.
+2. Code is tested and validated at the end of each day.
+3. Every day concludes with a documented GitHub commit and an update to CHANGELOG.md.
+
+================================================================================
+PHASE 1: FOUNDATION, DATA ENGINE & FEATURE STORE (DAYS 1 - 3)
+================================================================================
+
+--- DAY 1: Project Scaffolding, Architecture Setup & Environment ---
+Objective:
+  Set up the full project repository structure, dependency management, git tracking,
+  and documentation baseline.
+Deliverables:
+  - Initialize Git repository with proper .gitignore (Python, virtualenv, artifacts).
+  - Directory hierarchy:
+      Recommender_sys/
+      ├── src/
+      │   ├── data/            # Data synthesis, loading, and splitting
+      │   ├── features/        # Feature extraction and transformation
+      │   ├── retrieval/       # Vector search and candidate generation
+      │   ├── ranking/         # LightGBM/XGBoost ranking models
+      │   ├── evaluation/      # Offline metrics (NDCG, Recall, Precision)
+      │   └── ab_testing/      # Traffic splitting, SRM, CUPED, hypothesis testing
+      ├── tests/               # Unit and integration test suites
+      ├── notebooks/           # Exploratory and demonstration notebooks
+      ├── config/              # Central configuration (YAML / Python dataclass)
+      ├── implementation.txt   # This roadmap file
+      ├── CHANGELOG.md         # Daily progress and commit tracking
+      └── requirements.txt     # Locked project dependencies
+  - Create requirements.txt with core libraries:
+    numpy, pandas, scikit-learn, faiss-cpu, lightgbm, xgboost, scipy, statsmodels, pytest.
+Daily GitHub Commit:
+  feat: initialize project scaffolding, dependencies, and architecture blueprint
+
+--- DAY 2: Data Synthesis, Ingestion & Temporal Splitting Pipeline ---
+Objective:
+  Build a realistic interaction dataset generation engine with timestamps, user 
+  demographics, item categories, user-item interactions (clicks, dwell time, purchases),
+  and a strict temporal train/val/test splitting mechanism to prevent lookahead bias.
+Deliverables:
+  - src/data/generator.py: Synthetic realistic interaction generator simulating user
+    preference clusters and item popularity distributions.
+  - src/data/splitter.py: Temporal data splitting module (Train: Days 1-14, Val: Days 15-21,
+    Test: Days 22-28).
+  - src/data/sampler.py: Hard and random negative sampling mechanisms for training.
+  - tests/test_data.py: Unit tests verifying temporal separation and no data leakage.
+Daily GitHub Commit:
+  feat(data): implement interaction dataset generator, temporal splitter, and negative sampler
+
+--- DAY 3: Feature Engineering Engine & Feature Store ---
+Objective:
+  Build user, item, and cross-interaction feature engineering pipelines to supply
+  both retrieval and ranking stages.
+Deliverables:
+  - src/features/user_features.py: User activity frequency, category affinities, 
+    historical CTR, average dwell time.
+  - src/features/item_features.py: Item popularity tier, category encoding, 
+    cumulative interaction rate, recency decay.
+  - src/features/interaction_features.py: User-item category match flags, 
+    cosine similarities, time-of-day contextual features.
+  - tests/test_features.py: Unit tests ensuring feature transforms are reproducible.
+Daily GitHub Commit:
+  feat(features): implement user and item feature engineering pipeline with unit tests
+
+================================================================================
+PHASE 2: TWO-STAGE RECOMMENDER PIPELINE (DAYS 4 - 7)
+================================================================================
+
+--- DAY 4: Candidate Generation — Vector Embeddings ---
+Objective:
+  Generate high-dimensional vector representations for users and items using 
+  Matrix Factorization / Two-Tower representation to enable sub-millisecond retrieval.
+Deliverables:
+  - src/retrieval/embeddings.py: Dual-encoder / Matrix Factorization embedding trainer
+    generating d-dimensional normalized dense vectors for users and items.
+  - Export and persist embeddings (user_embeddings.npy, item_embeddings.npy).
+  - Validation notebook/script evaluating dot-product alignment on known user-item pairs.
+Daily GitHub Commit:
+  feat(retrieval): implement user and item embedding generation pipeline
+
+--- DAY 5: Vector Indexing & ANN Retrieval via Faiss ---
+Objective:
+  Build an Approximate Nearest Neighbor (ANN) search engine with Faiss to retrieve
+  top-K candidates from thousands/millions of items under strict latency budgets.
+Deliverables:
+  - src/retrieval/faiss_index.py: Modular Faiss index wrapper supporting IndexFlatIP,
+    IndexIVFFlat, and IndexHNSWFlat.
+  - src/retrieval/candidate_generator.py: Top-K candidate extraction pipeline.
+  - Benchmark script measuring retrieval latency (p50, p95, p99) vs. Recall@K trade-offs.
+  - tests/test_retrieval.py: Automated tests for index building, querying, and edge cases.
+Daily GitHub Commit:
+  feat(retrieval): implement Faiss ANN vector search index with latency/recall benchmarking
+
+--- DAY 6: Stage 2 — Ranking Model (LightGBM / XGBoost) ---
+Objective:
+  Train a gradient-boosted decision tree ranker to re-score and re-rank the retrieved 
+  candidate items using rich contextual and interaction features.
+Deliverables:
+  - src/ranking/dataset_builder.py: Combines Faiss candidate outputs with feature store
+    attributes into point-wise or pair-wise ranking datasets.
+  - src/ranking/ranker.py: LightGBM / XGBoost ranking wrapper supporting Pointwise 
+    binary classification and LambdaMART (pairwise ranking).
+  - Feature importance evaluation and SHAP/Gain diagnostics.
+  - tests/test_ranking.py: Verification of scoring pipeline and non-degenerate predictions.
+Daily GitHub Commit:
+  feat(ranking): implement LightGBM ranking pipeline with feature importance diagnostics
+
+--- DAY 7: Two-Stage Pipeline Orchestrator & Offline Evaluation ---
+Objective:
+  Integrate Candidate Retrieval (Faiss) + Re-ranking (LightGBM) into a unified end-to-end
+  recommender service and evaluate standard offline metrics.
+Deliverables:
+  - src/pipeline.py: TwoStageRecommender class executing Retrieve(K=100) -> Rank(top 10).
+  - src/evaluation/metrics.py: Offline evaluation engine implementing:
+    * Recall@K
+    * Precision@K
+    * NDCG@K (Normalized Discounted Cumulative Gain)
+    * MRR (Mean Reciprocal Rank)
+  - Comparative benchmark script comparing Baseline (Popularity / Pure Vector Search)
+    vs. Full Two-Stage System.
+Daily GitHub Commit:
+  feat(evaluation): integrate two-stage pipeline and implement NDCG@K and Recall@K evaluators
+
+================================================================================
+PHASE 3: A/B TESTING & EXPERIMENTATION ENGINE (DAYS 8 - 11)
+================================================================================
+
+--- DAY 8: Experimentation Platform Core & Traffic Splitting ---
+Objective:
+  Build a deterministic experimentation framework for splitting user traffic between
+  Control (Baseline / Popularity) and Treatment (Two-Stage Recommender), plus synthetic
+  user session simulation.
+Deliverables:
+  - src/ab_testing/splitter.py: Deterministic salted hash user bucketing (MurmurHash3 / MD5)
+    supporting arbitrary split ratios (e.g., 50/50, 90/10) and user stickiness.
+  - src/ab_testing/simulator.py: Session event generator capturing impressions, clicks,
+    conversions, and revenue for Control vs. Treatment cohorts.
+  - tests/test_splitter.py: Statistical checks confirming hash distribution uniformity.
+Daily GitHub Commit:
+  feat(ab-test): implement deterministic traffic splitting and synthetic event simulation engine
+
+--- DAY 9: Sample Ratio Mismatch (SRM) Detection Engine ---
+Objective:
+  Implement statistical detection for Sample Ratio Mismatch (SRM) to identify 
+  assignment bugs, telemetry dropouts, or selection biases before interpreting test results.
+Deliverables:
+  - src/ab_testing/srm.py: Chi-Square (χ²) Goodness-of-Fit test comparing observed
+    user counts against expected design ratios.
+  - Automated alerting threshold (p-value < 0.01 / 0.001) with diagnostic severity levels.
+  - Simulation experiment injecting artificial dropouts to verify SRM detection accuracy.
+  - tests/test_srm.py: Verification against known distribution tables.
+Daily GitHub Commit:
+  feat(ab-test): implement chi-square Sample Ratio Mismatch (SRM) detector and alert system
+
+--- DAY 10: CUPED Variance Reduction Engine ---
+Objective:
+  Implement Controlled-experiment using Pre-Experiment Data (CUPED) to strip out
+  pre-existing user variance, narrow confidence intervals, and reduce required sample sizes.
+Deliverables:
+  - src/ab_testing/cuped.py:
+    * Covariance parameter calculation: θ = Cov(Y, X) / Var(X)
+    * Adjusted metric transformation: Y_cuped = Y - θ * (X - E[X])
+    * Variance reduction ratio: 1 - Corr(Y, X)²
+  - Script comparing standard A/B variance vs. CUPED variance, quantifying sample size savings.
+  - tests/test_cuped.py: Unit tests validating mean preservation and variance reduction.
+Daily GitHub Commit:
+  feat(ab-test): implement CUPED variance reduction module with statistical efficiency reports
+
+--- DAY 11: Statistical Inference & Power Analysis Engine ---
+Objective:
+  Build the statistical testing suite to determine treatment significance, compute confidence
+  intervals, and calculate statistical power and sample size requirements.
+Deliverables:
+  - src/ab_testing/hypothesis_tests.py: Two-sample Welch's t-test, Mann-Whitney U test,
+    and non-parametric Bootstrap confidence intervals.
+  - src/ab_testing/power_analysis.py: Sample size calculator given α (Type I error = 0.05),
+    β (Type II error = 0.20, Power = 80%), and Minimum Detectable Effect (MDE).
+  - Visualization script plotting Power vs. Sample Size curves.
+  - tests/test_power.py: Numerical verification against analytical power formulas.
+Daily GitHub Commit:
+  feat(ab-test): implement hypothesis testing engine and statistical power/sample size calculator
+
+================================================================================
+PHASE 4: INTEGRATION, DASHBOARD & PORTFOLIO POLISH (DAYS 12 - 14)
+================================================================================
+
+--- DAY 12: End-to-End Simulation Runner ---
+Objective:
+  Run a full-scale, multi-day simulated online A/B experiment comparing the Two-Stage
+  Recommender against a baseline recommender.
+Deliverables:
+  - run_experiment_simulation.py: Master execution script running a simulated 14-day test:
+    * Generates pre-experiment and experiment-period interaction events.
+    * Evaluates daily SRM checks.
+    * Computes raw CTR vs. CUPED-adjusted CTR.
+    * Outputs p-values, confidence intervals, and lift estimates.
+  - Logging and tabular summary generation of experiment outcomes.
+Daily GitHub Commit:
+  feat(simulation): run complete end-to-end 14-day A/B experiment simulation with full diagnostics
+
+--- DAY 13: Interactive Dashboard & Visual Analytics ---
+Objective:
+  Build a clean, interactive Streamlit web dashboard (or CLI analytics suite) to visualize
+  the recommender outputs and experiment results.
+Deliverables:
+  - dashboard/app.py: Streamlit dashboard displaying:
+    * Candidate retrieval visualization (Query vector -> Top-K candidates).
+    * Re-ranked Top-5 items with feature contribution breakdown.
+    * Live A/B test telemetry: traffic allocation, SRM status card, cumulative p-values.
+    * Variance comparison chart (Standard vs. CUPED).
+Daily GitHub Commit:
+  feat(dashboard): add interactive web dashboard for real-time recommendation and A/B test analytics
+
+--- DAY 14: Portfolio-Grade Documentation, Tests & GitHub Release ---
+Objective:
+  Produce publication-quality documentation, architecture diagrams, test coverage,
+  and GitHub repository packaging.
+Deliverables:
+  - README.md: Comprehensive guide including system architecture diagrams, mathematical
+    derivations (Faiss indexing, LambdaMART, CUPED, Chi-Square), benchmark tables, and run guide.
+  - .github/workflows/ci.yml: Automated GitHub Actions CI workflow running pytest on pushes.
+  - Final test sweep and code formatting (flake8 / black).
+  - Tag release v1.0.0.
+Daily GitHub Commit:
+  docs: add comprehensive architecture documentation, benchmark results, and CI/CD workflow
+
+================================================================================
+END OF IMPLEMENTATION PLAN
+================================================================================
