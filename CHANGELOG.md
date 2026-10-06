@@ -2,6 +2,31 @@
 
 All notable changes and daily progress for the Two-Stage Recommender System & A/B Testing Framework will be documented in this file.
 
+## [Day 2] - 2026-10-06
+
+### Added
+- **Synthetic Data Generator (`src/data/generator.py`):**
+  - Generates realistic user cohorts with latent preference categories, activity tiers (casual, medium, heavy), and base CTRs.
+  - Builds item catalog with Pareto power-law popularity distribution and intrinsic quality scores.
+  - Simulates chronological interaction telemetry (clicks, impressions, dwell times, conversions).
+- **Temporal Train/Validation/Test Splitter (`src/data/splitter.py`):**
+  - Enforces strict temporal boundaries (Days 1-14 train, 15-21 val, 22-28 test) eliminating future lookahead data leakage.
+  - Computes user and item coverage and cold-start diagnostics across temporal partitions.
+- **Negative Sampling Engine (`src/data/sampler.py`):**
+  - Implements uniform random negative sampling and popularity-biased (hard) negative sampling.
+  - Provides data augmentation pipeline for candidate retrieval and ranker training.
+- **Unit Test Suite (`tests/test_data.py`):**
+  - Automated tests covering schema validity, strict temporal boundaries, negative disjointness, and dataset augmentation.
+- **CLI Generation Script (`scripts/generate_data.py`):**
+  - Command-line tool to generate and export processed Parquet datasets.
+
+### Commits
+- `feat(data): implement synthetic interaction dataset generator`
+- `feat(data): implement temporal train-validation-test splitter`
+- `feat(data): implement negative sampling strategy for training`
+- `test(data): add automated unit test suite for data pipeline`
+- `feat(cli): add dataset generation script with temporal split and negative sampling`
+
 ---
 
 ## [Day 1] - 2026-10-05
