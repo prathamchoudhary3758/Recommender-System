@@ -35,8 +35,8 @@ User Request
 | Day | Focus Area | Status | Deliverable |
 | :---: | :--- | :---: | :--- |
 | **Day 1** | **Scaffolding & Architecture** | ✅ Completed | Modular package layout, config engine, test suite |
-| **Day 2** | **Data Generation & Splitting** | ⏳ Up Next | Synthetic interaction generator, temporal splitter |
-| **Day 3** | **Feature Store & Extraction** | 📅 Scheduled | User/Item engagement profiles & affinity metrics |
+| **Day 2** | **Data Generation & Splitting** | ✅ Completed | Synthetic interaction generator, temporal splitter |
+| **Day 3** | **Feature Store & Extraction** | ⏳ Up Next | User/Item engagement profiles & affinity metrics |
 | **Day 4** | **Embedding Representation** | 📅 Scheduled | Matrix Factorization / Two-Tower user & item vectors |
 | **Day 5** | **Faiss ANN Vector Index** | 📅 Scheduled | IndexFlatIP / IVFFlat retrieval & latency benchmark |
 | **Day 6** | **LightGBM / XGBoost Ranker** | 📅 Scheduled | LambdaMART / Pointwise ranking model |
